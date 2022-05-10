@@ -223,7 +223,7 @@ const App: React.FC = () => {
   return (
     <div className="app">
     <Header
-    appLogo={<HeaderLogo logo={<SvgSettings />}>SQL Viewing</HeaderLogo>}
+    appLogo={<HeaderLogo logo={<SvgSettings />}>Model Checker</HeaderLogo>}
      breadcrumbs={
        <HeaderBreadcrumbs
          items={[
