@@ -1,5 +1,6 @@
 
 import { BrowserAuthorizationClient } from "@itwin/browser-authorization";
+import { IModelConnection } from "@itwin/core-frontend";
 
 
 
@@ -145,7 +146,20 @@ export class BentleyAPIFunctions{
     return  json;
   }
 
-
+  public static _executeQuery = async (imodel: IModelConnection, query: string) => {
+    const rows = [];
+    try {
+    for await (const row of imodel.query(query))
+      rows.push(row);
+  
+    return rows;
+    }
+    catch(e) {
+      const _e = e as Error
+      console.log (_e.message + " running ecSQL " + query)
+    }
+    return rows;
+  };
 
 }
 
