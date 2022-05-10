@@ -6,7 +6,7 @@ import { checkHS2 } from '../../rules/checkHS2';
 import { checkEquipment } from '../../rules/checkequipment';
 import { checkProperty } from '../../rules/checkProperty';
 import { checkSpaces } from '../../rules/checkSpaces';
-import { Button, Checkbox } from '@itwin/itwinui-react';
+import { Checkbox } from '@itwin/itwinui-react';
   
   export class ModelCheckerUIProvider implements UiItemsProvider {
   
@@ -29,18 +29,18 @@ import { Button, Checkbox } from '@itwin/itwinui-react';
           label: 'Model Checker',
           getWidgetContent() {
             return <span><span>Carbon</span><br></br>
-            <Button onClick = {() => checkBS1192()}>Check BS1192</Button>
+            <button className = "button" onClick = {() => checkBS1192()}>Check BS1192</button>
             <br></br>
-            <Button onClick = {() => checkUniclass()}>Check Uniclass</Button>
+            <button className = "button" onClick = {() => checkUniclass()}>Check Uniclass</button>
             <br></br>
-            <Button onClick = {() => checkHS2()}>Check HS2</Button>
+            <button className = "button" onClick = {() => checkHS2()}>Check HS2</button>
             <Checkbox label="System"></Checkbox><Checkbox label="Product"></Checkbox>
             <br></br>
-            <Button onClick = {() => checkEquipment()}>Check JunctionBox</Button>
+            <button className = "button" onClick = {() => checkEquipment()}>Check JunctionBox</button>
             <br></br>
-            <Button onClick = {() => checkProperty()}>Check Property</Button>
+            <button className = "button" onClick = {() => checkProperty()}>Check Property</button>
             <br></br>
-            <Button onClick = {() => checkSpaces()}>Check Spaces</Button>
+            <button className = "button" onClick = {() => checkSpaces()}>Check Spaces</button>
             <br></br>
             </span>;
           },

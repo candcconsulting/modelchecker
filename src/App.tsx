@@ -46,6 +46,14 @@ const App: React.FC = () => {
     []
   );
 
+  
+  const [isAuthorized, setIsAuthorized] = useState(
+    accessToken
+      ? true
+      : false
+  );
+
+
   const login = useCallback(async () => {
     try {
       await authClient.signInSilent();
@@ -62,6 +70,7 @@ const App: React.FC = () => {
   const onLogoutClick = async () => {
     setIsLoggingIn(false);
     await authClient.signOut();
+    setIsAuthorized(false);
   };
 
   const handleIModelChange = useCallback(value => {
@@ -117,7 +126,14 @@ const App: React.FC = () => {
   }, [login]);
 
   useEffect(() => {
+    if (!iModelId) {    
+      setIModelId(process.env.IMJS_IMODEL_ID)
+    }
+  } , [iModelId])
+
+  useEffect(() => {
     if (accessToken) {
+      setIsAuthorized(true)
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has("iTwinId")) {
         setITwinId(urlParams.get("iTwinId") as string);
@@ -129,9 +145,13 @@ const App: React.FC = () => {
         }
       }
 
-      if (urlParams.has("iModelId")) {
-        setIModelId(urlParams.get("iModelId") as string);
-      } else {
+      if (iModelId) {
+        /* setIModelId(urlParams.get("iModelId") as string); */
+        BentleyAPIFunctions.getImodelData(authClient, iModelId).then(iModelData => {
+          setSelectedIModel({id: iModelId, displayName: iModelData.displayName, name: iModelData.name})
+        })
+      }        
+      else {
         if (!process.env.IMJS_IMODEL_ID) {
           throw new Error(
             "Please add a valid iModel ID in the .env file and restart the application or add it to the iModelId query parameter in the url and refresh the page. See the README for more information."
@@ -144,8 +164,15 @@ const App: React.FC = () => {
   useEffect(() => {
     if (accessToken && iTwinId && iModelId) {
       history.push(`?iTwinId=${iTwinId}&iModelId=${iModelId}`);
+      BentleyAPIFunctions.getProjectData(authClient, iTwinId).then(projData => {
+        setSelectedProject({name: projData.projectNumber ,description: projData.displayName , id: projData.id});
+        })
+      BentleyAPIFunctions.getImodelData(authClient, iModelId).then(iModelData => {
+          setSelectedIModel({id: iModelId, displayName: iModelData.displayName, name: iModelData.name})
+      })
     }
-  }, [accessToken, iTwinId, iModelId]);
+  }, [accessToken, iTwinId, iModelId, authClient]);
+  
 
   /** NOTE: This function will execute the "Fit View" tool after the iModel is loaded into the Viewer.
    * This will provide an "optimal" view of the model. However, it will override any default views that are

@@ -85,7 +85,10 @@ export async function checkProperty () : Promise<void>{
 
                     aInstanceQuery = aInstanceQuery.replaceAll("<classname>", aResult[0]);
                     aInstanceQuery = aInstanceQuery.replaceAll("<propertyname>", aResult[1]);
+                    console.log("Checking : " + aInstanceQuery)
                     const aInstances = await BentleyAPIFunctions._executeQuery(vp.iModel, aInstanceQuery);
+                    if (aInstances.length > 0) console.log("Found instances in : " + aInstanceQuery)
+
                     for await (const aInstance of aInstances) {
                         if (aInstance[0]) {
                                 // IModelApp.notifications.outputMessage(new NotifyMessageDetails(OutputMessagePriority.Info, aInstance[1] + " is not a valid entry"));
