@@ -25,8 +25,8 @@ export async function emphasizeResults(vp : Viewport, results : string[]) {
   const ecResult = results.map(x => x[0]);
   const allElements = ecResult;
   // const allElements = await getElementIdHiliteSet(ecResult, vp.iModel);
-  emph.overrideElements(allElements, vp, ColorDef.white, FeatureOverrideType.ColorOnly, false);
-  emph.emphasizeElements(allElements,vp, FeatureAppearance.fromRgb(ColorDef.from(127,0,0)), true);
+  emph.overrideElements(allElements, vp, ColorDef.red, FeatureOverrideType.ColorOnly, true);
+  emph.emphasizeElements(allElements,vp, undefined, true);
   vp.iModel.selectionSet.emptyAll();
   for (const es of allElements.values()) {
     vp.iModel.selectionSet.add(es);

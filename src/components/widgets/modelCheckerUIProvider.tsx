@@ -22,22 +22,31 @@ type progressStatus = 'positive' | 'negative' | undefined
     return (
       <span>
         <span>Model Check</span><br></br>
+        <div className="flexbox-container">
           <button className = "button" onClick = {() => checkBS1192()}>Check BS1192</button>
-
+        </div>
         <br></br>
+        <div className="flexbox-container">
         <button className = "button" onClick = {() => checkUniclass()}>Check Uniclass</button>
+        </div>
         <br></br>
+        <div className="flexbox-container">
         <button className = "button" onClick = {() => checkHS2()}>Check HS2</button>
+        </div>
         <Checkbox label="System"></Checkbox><Checkbox label="Product"></Checkbox>
         <br></br>
+        <div className="flexbox-container">
         <button className = "button" onClick = {() => checkEquipment()}>Check JunctionBox</button>
+        </div>
         <br></br>
         <div className="flexbox-container">
           <ProgressRadial value={checkPropertyRadial} status = {checkPropertyStatus}></ProgressRadial>
           <button className = "button" onClick = {() => checkProperty(updateCheckPropertyStatus)}>Check Property</button>
         </div>
         <br></br>
+        <div className="flexbox-container">
         <button className = "button" onClick = {() => checkSpaces()}>Check Spaces</button>
+        </div>
         <br></br>
       </span>
     )
