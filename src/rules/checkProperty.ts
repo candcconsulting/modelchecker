@@ -9,6 +9,7 @@ import {
   import { UiFramework } from "@itwin/appui-react";
 import { BentleyAPIFunctions } from "../helper/BentleyAPIFunctions";
 import { emphasizeResults } from "../common/common";
+import { SetStateAction } from "react";
 
 function myfind(a : any, value: any) : any
 {
@@ -28,7 +29,7 @@ function myfind(a : any, value: any) : any
     return undefined
 }
 
-export async function checkProperty () : Promise<void>{
+export async function checkProperty (progressBar: any) : Promise<void>{
 /* 
  load the BS1192.json rules
  and validate against them
@@ -49,9 +50,11 @@ export async function checkProperty () : Promise<void>{
         const aQuery = "select distinct ec_classname(class.id, 's.c') as ecclass, pd.name from meta.ecpropertydef pd join bis.geometricelement3d ge on ge.ecclassid = pd.class.id where  (pd.DisplayLabel like '%" + aRule.property + "%' OR pd.Name like '%" + aRule.property + "%')"
 
         const aResults = await BentleyAPIFunctions._executeQuery(vp.iModel, aQuery);
+        var i = 0;
         for await (const aResult of aResults) {
             // now we have a list of classes that are have a property with the required property name
             // now let's find the instances
+            i = i + 1;
             switch (aRule.ruletype) {
                 case "propertylist" : {
                     const aInstanceQuery = "select ecinstanceid as id, " + aResult[1] + " as propertyname from " + aResult[0] + "as el join bis.geometricelement3d as gw on gw.ecinstanceid = el.ecinstanceid ";
@@ -100,6 +103,7 @@ export async function checkProperty () : Promise<void>{
                     break;
 
             }
+            progressBar(i / aResults.length * 100)
         }
     }
     emphasizeResults(vp, invalidElements)
