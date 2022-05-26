@@ -159,7 +159,7 @@ const App: React.FC = () => {
         }
       }
     }
-  }, [accessToken]);
+  }, [accessToken, authClient, iModelId]);
 
   useEffect(() => {
     if (accessToken && iTwinId && iModelId) {

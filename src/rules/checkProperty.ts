@@ -10,6 +10,8 @@ import {
 import { BentleyAPIFunctions } from "../helper/BentleyAPIFunctions";
 import { emphasizeResults } from "../common/common";
 import { SetStateAction } from "react";
+import { StringLiteralLike } from "typescript";
+import { areEqualPossiblyUndefined } from "@itwin/core-bentley";
 
 function myfind(a : any, value: any) : any
 {
@@ -29,6 +31,48 @@ function myfind(a : any, value: any) : any
     return undefined
 }
 
+class RuleInstance {
+    name = "";
+    description = "";
+    severity = 1;
+    ecSchema = "";
+    ecClass = "";
+    ecWhere = ""
+    propertyName = "";
+    functionName = ""
+    pattern = ""
+    lowerBound = ""
+    upperBound = ""
+    tags = ""
+    dataType = 1;
+    whereDataType = 1;
+
+    public schemaFromClassandSchema(aClass: string) {
+        return aClass.substring(0, aClass.indexOf("."));
+    }
+    public classFromClassandSchema(aClass: string) {
+        return aClass.substring(aClass.indexOf(".") + 1);
+    }
+
+    public join (linker : string) {        
+        return this.name + linker + 
+            this.description + linker + 
+            this.severity.toString() + linker + 
+            this.ecSchema + linker +
+            this.ecClass + linker +
+            this.ecWhere + linker + 
+            this.propertyName + linker + 
+            this.functionName + linker + 
+            this.pattern + linker + 
+            this.lowerBound + linker + 
+            this.upperBound + linker + 
+            this.tags + linker +
+            this.dataType.toString() + linker + 
+            this.whereDataType.toString();
+    }
+
+}
+
 export async function checkProperty (progressBar: any) : Promise<void>{
 /* 
  load the BS1192.json rules
@@ -37,6 +81,7 @@ export async function checkProperty (progressBar: any) : Promise<void>{
     IModelApp.notifications.outputMessage(new NotifyMessageDetails(OutputMessagePriority.Info, " starting Property checks ..."));
     const rules = require("./checkProperty.json");
     const invalidElements:any = [];
+    let allRules : RuleInstance[] = [];
     const vp = IModelApp.viewManager.getFirstOpenView();
     if (!vp) {
         return
@@ -47,9 +92,10 @@ export async function checkProperty (progressBar: any) : Promise<void>{
         IModelApp.notifications.outputMessage(new NotifyMessageDetails(OutputMessagePriority.Info, " rule " + aRule.id));
 
 
-        const aQuery = "select distinct ec_classname(class.id, 's.c') as ecclass, pd.name from meta.ecpropertydef pd join bis.geometricelement3d ge on ge.ecclassid = pd.class.id where  (pd.DisplayLabel like '%" + aRule.property + "%' OR pd.Name like '%" + aRule.property + "%')"
+        const aQuery = "select distinct ec_classname(class.id, 's.c') as ecclass, pd.name, cd.displaylabel, pd.displaylabel from meta.ecpropertydef pd join bis.geometricelement3d ge on ge.ecclassid = pd.class.id join meta.ecclassdef cd on pd.class.id = cd.ecinstanceid where  (pd.DisplayLabel like '%" + aRule.property + "%' OR pd.Name like '%" + aRule.property + "%')"
 
         const aResults = await BentleyAPIFunctions._executeQuery(vp.iModel, aQuery);
+        
         var i = 0;
         for await (const aResult of aResults) {
             // now we have a list of classes that are have a property with the required property name
@@ -88,6 +134,18 @@ export async function checkProperty (progressBar: any) : Promise<void>{
 
                     aInstanceQuery = aInstanceQuery.replaceAll("<classname>", aResult[0]);
                     aInstanceQuery = aInstanceQuery.replaceAll("<propertyname>", aResult[1]);
+                    var aRuleInstance  = new RuleInstance() ;
+                    aRuleInstance.name = aRule.id + i.toString();
+                    const ecClass = aResult[2] || aRuleInstance.classFromClassandSchema(aResult[0]);
+                    aRuleInstance.description = `For items of type ${ecClass} the property ${aResult[3]} must conform to the regular expression: ${aRule.pattern}`
+                    aRuleInstance.ecClass = aRuleInstance.classFromClassandSchema(aResult[0]);
+                    aRuleInstance.ecSchema = aRuleInstance.schemaFromClassandSchema(aResult[0]);
+                    aRuleInstance.functionName = "Matches Pattern";
+                    aRuleInstance.propertyName = aResult[1];
+                    aRuleInstance.pattern = aRule.pattern.replaceAll("\\\\", "\\");
+                    
+                    allRules.push(aRuleInstance);
+
                     console.log("Checking : " + aInstanceQuery)
                     const aInstances = await BentleyAPIFunctions._executeQuery(vp.iModel, aInstanceQuery);
                     if (aInstances.length > 0) console.log("Found instances in : " + aInstanceQuery)
@@ -107,5 +165,17 @@ export async function checkProperty (progressBar: any) : Promise<void>{
         }
     }
     emphasizeResults(vp, invalidElements)
+    progressBar('postive');
+    const csvContent = "data:text/csv;charset=utf-8," + 
+    "name,description,severity,ecSchema,ecClass,ecWhere,propertyName,functionName,pattern,lowerBound,upperBound,tags,dataType,whereDataType\n" +
+    allRules.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "allRules.csv");
+    document.body.appendChild(link); // Required for FF
+
+    link.click();
+
 
 }
