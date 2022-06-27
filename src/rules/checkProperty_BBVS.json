@@ -5,6 +5,12 @@
 				"property" : "UAID",
 				"checksql" : "select el.<id> as id, <propertyname> as propertyname from <classname> as el join bis.geometricelement3d as ge on ge.ecinstanceid = el.ecinstanceid where <propertyname> not Like 'HS2%'",
 				"pattern" : "HS2-\\w*"
+			},
+			{ "id" : "Length",
+				"ruletype" : "propertyvalue", 
+				"property" : "Length",
+				"checksql" : "select el.<id> as id, <propertyname> as propertyname from <classname> as el join bis.geometricelement3d as ge on ge.ecinstanceid = el.ecinstanceid where <propertyname> <= 0",
+				"lowerBound" : "0.01"
 			}
 	
 ]}

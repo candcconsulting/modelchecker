@@ -103,6 +103,7 @@ export async function checkProperty (progressBar: any) : Promise<void>{
             i = i + 1;
             switch (aRule.ruletype) {
                 case "propertylist" : {
+
                     const aInstanceQuery = "select ecinstanceid as id, " + aResult[1] + " as propertyname from " + aResult[0] + "as el join bis.geometricelement3d as gw on gw.ecinstanceid = el.ecinstanceid ";
                     const aInstances = await BentleyAPIFunctions._executeQuery(vp.iModel, aInstanceQuery);
                     for await (const aInstance of aInstances) {
@@ -121,44 +122,82 @@ export async function checkProperty (progressBar: any) : Promise<void>{
                             // as we are not checking for properties with only instances we may be querying for classes with no instances
                         }
                     }
-                    break;
+                break;
                 }
                 case "propertyvalue" : {
-                    let aInstanceQuery = aRule.checksql;
-                    if (aResult[0].indexOf( 'Aspect') >= 0) {
-                        aInstanceQuery = aInstanceQuery.replaceAll("<id>", 'element.id');
-                    } else
-                    {
-                        aInstanceQuery = aInstanceQuery.replaceAll("<id>", 'ecinstanceid');
-                    }
+                    if (aRule.pattern) {
+                        let aInstanceQuery = aRule.checksql;
+                        if (aResult[0].indexOf( 'Aspect') >= 0) {
+                            aInstanceQuery = aInstanceQuery.replaceAll("<id>", 'element.id');
+                        } else
+                        {
+                            aInstanceQuery = aInstanceQuery.replaceAll("<id>", 'ecinstanceid');
+                        }
 
-                    aInstanceQuery = aInstanceQuery.replaceAll("<classname>", aResult[0]);
-                    aInstanceQuery = aInstanceQuery.replaceAll("<propertyname>", aResult[1]);
-                    var aRuleInstance  = new RuleInstance() ;
-                    aRuleInstance.name = aRule.id + i.toString();
-                    const ecClass = aResult[2] || aRuleInstance.classFromClassandSchema(aResult[0]);
-                    aRuleInstance.description = `For items of type ${ecClass} the property ${aResult[3]} must conform to the regular expression: ${aRule.pattern}`
-                    aRuleInstance.ecClass = aRuleInstance.classFromClassandSchema(aResult[0]);
-                    aRuleInstance.ecSchema = aRuleInstance.schemaFromClassandSchema(aResult[0]);
-                    aRuleInstance.functionName = "Matches Pattern";
-                    aRuleInstance.propertyName = aResult[1];
-                    aRuleInstance.pattern = aRule.pattern.replaceAll("\\\\", "\\");
-                    
-                    allRules.push(aRuleInstance);
+                        aInstanceQuery = aInstanceQuery.replaceAll("<classname>", aResult[0]);
+                        aInstanceQuery = aInstanceQuery.replaceAll("<propertyname>", aResult[1]);
+                        let aRuleInstance  = new RuleInstance() ;
+                        aRuleInstance.name = aRule.id + i.toString();
+                        const ecClass = aResult[2] || aRuleInstance.classFromClassandSchema(aResult[0]);
+                        aRuleInstance.description = `For items of type ${ecClass} the property ${aResult[3]} must conform to the regular expression: ${aRule.pattern}`
+                        aRuleInstance.ecClass = aRuleInstance.classFromClassandSchema(aResult[0]);
+                        aRuleInstance.ecSchema = aRuleInstance.schemaFromClassandSchema(aResult[0]);
+                        aRuleInstance.functionName = "Matches Pattern";
+                        aRuleInstance.propertyName = aResult[1];
+                        aRuleInstance.pattern = aRule.pattern.replaceAll("\\\\", "\\");
+                        allRules.push(aRuleInstance);
+                        
 
-                    console.log("Checking : " + aInstanceQuery)
-                    const aInstances = await BentleyAPIFunctions._executeQuery(vp.iModel, aInstanceQuery);
-                    if (aInstances.length > 0) console.log("Found instances in : " + aInstanceQuery)
+                        console.log("Checking : " + aInstanceQuery)
+                        const aInstances = await BentleyAPIFunctions._executeQuery(vp.iModel, aInstanceQuery);
+                        if (aInstances.length > 0) console.log("Found instances in : " + aInstanceQuery)
 
-                    for await (const aInstance of aInstances) {
-                        if (aInstance[0]) {
-                                // IModelApp.notifications.outputMessage(new NotifyMessageDetails(OutputMessagePriority.Info, aInstance[1] + " is not a valid entry"));
-                                invalidElements.push(aInstance[0]);
-                            }
-                            // as we are not checking for properties with only instances we may be querying for classes with no instances
+                        for await (const aInstance of aInstances) {
+                            if (aInstance[0]) {
+                                    // IModelApp.notifications.outputMessage(new NotifyMessageDetails(OutputMessagePriority.Info, aInstance[1] + " is not a valid entry"));
+                                    invalidElements.push(aInstance[0]);
+                                }
+                                // as we are not checking for properties with only instances we may be querying for classes with no instances
                         }
                     }                    
+                    if (aRule.lowerBound) {
+                        let aInstanceQuery = aRule.checksql;
+                        if (aResult[0].indexOf( 'Aspect') >= 0) {
+                            aInstanceQuery = aInstanceQuery.replaceAll("<id>", 'element.id');
+                        } else
+                        {
+                            aInstanceQuery = aInstanceQuery.replaceAll("<id>", 'ecinstanceid');
+                        }
+
+                        aInstanceQuery = aInstanceQuery.replaceAll("<classname>", aResult[0]);
+                        aInstanceQuery = aInstanceQuery.replaceAll("<propertyname>", aResult[1]);
+                        let aRuleInstance  = new RuleInstance() ;
+                        aRuleInstance.name = aRule.id + i.toString();
+                        const ecClass = aResult[2] || aRuleInstance.classFromClassandSchema(aResult[0]);
+                        aRuleInstance.description = `For items of type ${ecClass} the property ${aResult[3]} must conform to the regular expression: ${aRule.pattern}`
+                        aRuleInstance.ecClass = aRuleInstance.classFromClassandSchema(aResult[0]);
+                        aRuleInstance.ecSchema = aRuleInstance.schemaFromClassandSchema(aResult[0]);
+                        aRuleInstance.functionName = "Minimum";
+                        aRuleInstance.propertyName = aResult[1];
+                        aRuleInstance.lowerBound = aRule.lowerBound;
+                        allRules.push(aRuleInstance);
+                        
+
+                        console.log("Checking : " + aInstanceQuery)
+                        const aInstances = await BentleyAPIFunctions._executeQuery(vp.iModel, aInstanceQuery);
+                        if (aInstances.length > 0) console.log("Found instances in : " + aInstanceQuery)
+
+                        for await (const aInstance of aInstances) {
+                            if (aInstance[0]) {
+                                    // IModelApp.notifications.outputMessage(new NotifyMessageDetails(OutputMessagePriority.Info, aInstance[1] + " is not a valid entry"));
+                                    invalidElements.push(aInstance[0]);
+                                }
+                                // as we are not checking for properties with only instances we may be querying for classes with no instances
+                            }
+
+                    }
                     break;
+                }
 
             }
             progressBar(i / aResults.length * 100)
