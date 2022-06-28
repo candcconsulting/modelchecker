@@ -90,9 +90,13 @@ export async function checkProperty (progressBar: any) : Promise<void>{
     {
         const aRule = rules.rules[ruleset];
         IModelApp.notifications.outputMessage(new NotifyMessageDetails(OutputMessagePriority.Info, " rule " + aRule.id));
+        let criteria = ''
+        if (!aRule.criteria)
+            criteria = '%' + aRule.property + '%'
+        else
+            criteria = aRule.criteria
 
-
-        const aQuery = "select distinct ec_classname(class.id, 's.c') as ecclass, pd.name, cd.displaylabel, pd.displaylabel from meta.ecpropertydef pd join bis.geometricelement3d ge on ge.ecclassid = pd.class.id join meta.ecclassdef cd on pd.class.id = cd.ecinstanceid where  (pd.DisplayLabel like '%" + aRule.property + "%' OR pd.Name like '%" + aRule.property + "%')"
+        const aQuery = "select distinct ec_classname(class.id, 's.c') as ecclass, pd.name, cd.displaylabel, pd.displaylabel from meta.ecpropertydef pd join bis.geometricelement3d ge on ge.ecclassid = pd.class.id join meta.ecclassdef cd on pd.class.id = cd.ecinstanceid where  (pd.DisplayLabel like '" + criteria + "' OR pd.Name like '" + criteria + "')"
 
         const aResults = await BentleyAPIFunctions._executeQuery(vp.iModel, aQuery);
         
